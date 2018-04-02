@@ -1,5 +1,6 @@
-package com.nemov.materialrecycler
+package com.nemov.programexplorer
 
+import android.util.Log
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -7,8 +8,8 @@ import io.reactivex.schedulers.Schedulers
 /**
  * Created by ynemov on 31.03.18.
  */
-class Presenter(val view: IView, val uuid: String): IPresenter {
-    val model = Model()
+class ProgramPresenter(val view: IView, val uuid: String) : IPresenter {
+    val model = ProgramModel()
     var disposable: Disposable? = null
 
     override fun loadInitial(borderId: Int) {
@@ -29,12 +30,17 @@ class Presenter(val view: IView, val uuid: String): IPresenter {
 
     fun load(borderId: Int, direction: IPresenter.Direction) {
         view.showLoading()
+        Log.d("PROGRAM_PRESENTER", "load: $borderId, $direction (${direction.direction})")
 
-        disposable = model.getProgramList(uuid, borderId, direction)
+        disposable = model.getProgramList(uuid, borderId, direction.direction)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
-                    view.addResults(it)
+                    when(direction) {
+                        IPresenter.Direction.NO_DIRECTION -> view.addResults(it)
+                        IPresenter.Direction.UP -> view.prependResults(it)
+                        IPresenter.Direction.DOWN -> view.appendResults(it)
+                    }
                     view.showData()
                 }
     }
