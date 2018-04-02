@@ -9,9 +9,7 @@ import android.net.ConnectivityManager
  *  Project : Sample Project - Internet status checking
  *  Date : 24 Feb 2018*/
 class ConnectivityReceiver : BroadcastReceiver() {
-
     override fun onReceive(context: Context, arg1: Intent) {
-
         if (connectivityReceiverListener != null) {
             connectivityReceiverListener!!.onNetworkConnectionChanged(isConnectedOrConnecting(context))
         }

@@ -17,15 +17,13 @@ import com.nemov.programexplorer.commons.ConnectivityReceiver
 import com.nemov.programexplorer.commons.EndlessRecyclerOnScrollListener
 import com.nemov.programexplorer.commons.findFirstVisiblePosition
 import com.nemov.programexplorer.commons.getUuid
-import com.nemov.programexplorer.programview.ProgramAdapter
+import com.nemov.programexplorer.programadapter.ProgramAdapter
 
 class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.ConnectivityReceiverListener {
     private val BORDER_ID_KEY = "BORDER_ID_KEY"
+    private val DEFAULT_BORDER_ID = 0
 
-    private val presenter by lazy {
-        ProgramPresenter(this, getUuid(this))
-    }
-
+    private val presenter = ProgramPresenter(this, getUuid(this))
     private val connectivityReceiver = ConnectivityReceiver()
 
     private var borderId = 0
@@ -38,10 +36,6 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
     override fun showData() {
         scrollListener.setLoading(false)
         swipeContainer.setRefreshing(false)
-    }
-
-    override fun showLoading() {
-        Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show()
     }
 
     override fun setResults(programs: ProgramModel.Companion.ProgramList) {
@@ -60,7 +54,7 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        borderId = savedInstanceState?.getInt(BORDER_ID_KEY)?: 0
+        borderId = savedInstanceState?.getInt(BORDER_ID_KEY)?: DEFAULT_BORDER_ID
 
         rvProgram = findViewById<RecyclerView>(R.id.programList)
         rvProgram.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false)
@@ -109,7 +103,7 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
         outState?.run {
             val firstVisible = rvProgram.findFirstVisiblePosition()
             borderId = (rvProgram.adapter as IAdapter).getDataIDByAdapterPosition(
-                    if (firstVisible < 0) 0 else firstVisible
+                    if (firstVisible < 0) DEFAULT_BORDER_ID else firstVisible
             )
             putInt(BORDER_ID_KEY, borderId)
         }
@@ -119,8 +113,8 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
     override fun onNetworkConnectionChanged(isConnected: Boolean) {
         this.isConnected = isConnected
         if (isConnected) {
-            presenter.loadInitial(borderId ?: 0)
-        } else if (!isConnected) {
+            presenter.loadInitial(borderId)
+        } else {
             Toast.makeText(this, "You are offline", Toast.LENGTH_SHORT).show()
         }
     }

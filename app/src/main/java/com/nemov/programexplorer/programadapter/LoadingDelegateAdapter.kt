@@ -1,4 +1,4 @@
-package com.nemov.programexplorer.programview
+package com.nemov.programexplorer.programadapter
 
 import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup

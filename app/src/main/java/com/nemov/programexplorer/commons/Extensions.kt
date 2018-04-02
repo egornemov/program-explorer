@@ -13,7 +13,6 @@ import java.util.*
 /**
  * Created by ynemov on 4/2/18.
  */
-
 fun getUuid(context: Context): String {
     try {
         val androidId = Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID)

@@ -1,4 +1,4 @@
-package com.nemov.programexplorer.programview
+package com.nemov.programexplorer.programadapter
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.nemov.programexplorer.R
-import com.nemov.programexplorer.api.IAdapter
 import com.nemov.programexplorer.api.ProgramModel
 import com.nemov.programexplorer.commons.adapter.ViewType
 import com.nemov.programexplorer.commons.adapter.ViewTypeDelegateAdapter

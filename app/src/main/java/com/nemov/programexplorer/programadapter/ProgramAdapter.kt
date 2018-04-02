@@ -1,4 +1,4 @@
-package com.nemov.programexplorer.programview
+package com.nemov.programexplorer.programadapter
 
 import android.support.v4.util.SparseArrayCompat
 import android.support.v7.widget.RecyclerView
@@ -38,26 +38,23 @@ class ProgramAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), IAdapter
     override fun getItemViewType(position: Int) = items[position].getViewType()
 
     override fun clearAndSetAll(programs: ProgramModel.Companion.ProgramList) {
-        // first remove loading and notify
         val initPosition = items.size - 1
         items.removeAt(initPosition)
         notifyItemRemoved(initPosition)
 
-        // insert news and the loading at the end of the list
         items.addAll(programs.items)
         items.add(loadingItem)
-        notifyItemRangeChanged(initPosition, items.size + 1 /* plus loading item */)
+        notifyItemRangeChanged(initPosition, items.size)
     }
 
     override fun prependAll(programs: ProgramModel.Companion.ProgramList) {
         val programList: List<ProgramModel.Companion.Program> = getProgramList()
-        val prevPrograms = programs.items.subList(0, programs.items.size - 1)
-        val itemCount = prevPrograms.size
+        val itemCount = programs.items_number
 
         items.clear()
         notifyItemRangeRemoved(0, getLastPosition())
 
-        items.addAll(prevPrograms)
+        items.addAll(programs.items)
         items.addAll(programList)
         items.add(loadingItem)
         notifyItemRangeInserted(0, itemCount)

@@ -28,7 +28,6 @@ class ProgramPresenter(val view: IView, val uuid: String) : IPresenter {
     }
 
     fun load(borderId: Int, direction: IPresenter.Direction) {
-        view.showLoading()
         disposable = model.getProgramList(uuid, borderId, direction.direction)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

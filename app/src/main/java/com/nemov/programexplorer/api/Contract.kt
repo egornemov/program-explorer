@@ -12,7 +12,6 @@ import retrofit2.http.Query
  */
 interface IView {
     fun showData()
-    fun showLoading()
     fun setResults(programs: ProgramModel.Companion.ProgramList)
     fun prependResults(programs: ProgramModel.Companion.ProgramList)
     fun appendResults(programs: ProgramModel.Companion.ProgramList)
