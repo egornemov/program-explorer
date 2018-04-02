@@ -34,7 +34,7 @@ class ProgramPresenter(val view: IView, val uuid: String) : IPresenter {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
                     when(direction) {
-                        IPresenter.Direction.NO_DIRECTION -> view.addResults(it)
+                        IPresenter.Direction.NO_DIRECTION -> view.setResults(it)
                         IPresenter.Direction.UP -> view.prependResults(it)
                         IPresenter.Direction.DOWN -> view.appendResults(it)
                     }

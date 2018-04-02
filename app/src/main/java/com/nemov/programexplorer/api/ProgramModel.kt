@@ -1,5 +1,7 @@
 package com.nemov.programexplorer.api
 
+import com.nemov.programexplorer.commons.adapter.AdapterConstants
+import com.nemov.programexplorer.commons.adapter.ViewType
 import java.util.*
 
 /**
@@ -11,19 +13,19 @@ class ProgramModel : IModel {
     override fun getProgramList(uuid: String, borderId: Int, direction: Int) = model.getProgramList(uuid, borderId, direction)
 
     companion object {
-        data class Program(
-                val items: ArrayList<Item>,
+        data class ProgramList(
+                val items: ArrayList<Program>,
                 val items_number: Int,
                 val offset: Int,
                 val total: Int,
                 val hasMore: Int
         ) {
-            infix fun append(program: Program): Program {
-                var joined = ArrayList<Item>()
+            infix fun append(program: ProgramList): ProgramList {
+                var joined = ArrayList<Program>()
                 joined.addAll(items)
                 joined.addAll(program.items)
 
-                return Program(
+                return ProgramList(
                         joined,
                         items_number + program.items_number,
                         offset,
@@ -32,10 +34,12 @@ class ProgramModel : IModel {
                 )
             }
         }
-        data class Item(
+        data class Program(
                 val id: Int,
                 val icon: String,
                 val name: String
-        )
+        ) : ViewType {
+            override fun getViewType() = AdapterConstants.PROGRAM
+        }
     }
 }

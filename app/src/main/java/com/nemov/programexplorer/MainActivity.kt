@@ -44,17 +44,15 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
         Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show()
     }
 
-    override fun addResults(programs: ProgramModel.Companion.Program) {
-        if (rvProgram.adapter == null) {
-            rvProgram.adapter = ProgramAdapter(programs)
-        }
+    override fun setResults(programs: ProgramModel.Companion.ProgramList) {
+        (rvProgram.adapter as IAdapter).clearAndSetAll(programs)
     }
 
-    override fun prependResults(programs: ProgramModel.Companion.Program) {
+    override fun prependResults(programs: ProgramModel.Companion.ProgramList) {
         (rvProgram.adapter as IAdapter).prependAll(programs)
     }
 
-    override fun appendResults(programs: ProgramModel.Companion.Program) {
+    override fun appendResults(programs: ProgramModel.Companion.ProgramList) {
         (rvProgram.adapter as IAdapter).appendAll(programs)
     }
 
@@ -66,11 +64,15 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
 
         rvProgram = findViewById<RecyclerView>(R.id.programList)
         rvProgram.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false)
+        rvProgram.adapter = ProgramAdapter()
         scrollListener = object : EndlessRecyclerOnScrollListener(rvProgram.layoutManager) {
             override fun onLoadMore() {
-                if (!isConnected) return
-                val borderId = (rvProgram?.adapter as IAdapter).getLastDataID()
-                presenter.loadNext(borderId)
+                if (isConnected) {
+                    val borderId = (rvProgram?.adapter as IAdapter).getLastDataID()
+                    presenter.loadNext(borderId)
+                } else {
+                    scrollListener.setLoading(false)
+                }
             }
         }
         rvProgram.addOnScrollListener(scrollListener)
@@ -80,14 +82,10 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
             if (isConnected) {
                 val borderId = (rvProgram?.adapter as IAdapter).getFirstDataID()
                 presenter.loadPrevious(borderId)
+            } else {
+                swipeContainer.setRefreshing(false)
             }
         }
-        swipeContainer.setColorSchemeResources(
-                android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light
-        )
     }
 
     override fun onStart() {
@@ -110,21 +108,17 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
     override fun onSaveInstanceState(outState: Bundle?) {
         outState?.run {
             val firstVisible = rvProgram.findFirstVisiblePosition()
-            if (rvProgram.adapter != null) {
-                borderId = (rvProgram.adapter as IAdapter).getDataIDByAdapterPosition(firstVisible)
-            }
+            borderId = (rvProgram.adapter as IAdapter).getDataIDByAdapterPosition(
+                    if (firstVisible < 0) 0 else firstVisible
+            )
             putInt(BORDER_ID_KEY, borderId)
         }
         super.onSaveInstanceState(outState)
     }
 
     override fun onNetworkConnectionChanged(isConnected: Boolean) {
-        showMessage(isConnected)
-    }
-
-    private fun showMessage(isConnected: Boolean) {
         this.isConnected = isConnected
-        if (isConnected && rvProgram.adapter == null) {
+        if (isConnected) {
             presenter.loadInitial(borderId ?: 0)
         } else if (!isConnected) {
             Toast.makeText(this, "You are offline", Toast.LENGTH_SHORT).show()

@@ -13,9 +13,9 @@ import retrofit2.http.Query
 interface IView {
     fun showData()
     fun showLoading()
-    fun addResults(programs: ProgramModel.Companion.Program)
-    fun prependResults(programs: ProgramModel.Companion.Program)
-    fun appendResults(programs: ProgramModel.Companion.Program)
+    fun setResults(programs: ProgramModel.Companion.ProgramList)
+    fun prependResults(programs: ProgramModel.Companion.ProgramList)
+    fun appendResults(programs: ProgramModel.Companion.ProgramList)
 }
 
 val INITIAL_BORDER_ID = 0
@@ -37,7 +37,7 @@ interface IModel {
     fun getProgramList(
             @Query("serial_number") uuid: String,
             @Query("borderId") borderId: Int,
-            @Query("direction") direction: Int): Observable<ProgramModel.Companion.Program>
+            @Query("direction") direction: Int): Observable<ProgramModel.Companion.ProgramList>
 
     companion object {
         fun create(): IModel {
@@ -56,6 +56,7 @@ interface IAdapter {
     fun getDataIDByAdapterPosition(index: Int): Int
     fun getFirstDataID(): Int
     fun getLastDataID(): Int
-    fun prependAll(programs: ProgramModel.Companion.Program)
-    fun appendAll(programs: ProgramModel.Companion.Program)
+    fun clearAndSetAll(programs: ProgramModel.Companion.ProgramList)
+    fun prependAll(programs: ProgramModel.Companion.ProgramList)
+    fun appendAll(programs: ProgramModel.Companion.ProgramList)
 }

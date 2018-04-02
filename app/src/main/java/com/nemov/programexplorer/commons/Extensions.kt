@@ -3,6 +3,9 @@ package com.nemov.programexplorer.commons
 import android.content.Context
 import android.provider.Settings
 import android.support.v7.widget.RecyclerView
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import com.squareup.picasso.Picasso
 import java.util.*
@@ -29,3 +32,5 @@ fun RecyclerView.findFirstVisiblePosition(): Int {
 fun ImageView.loadUrl(url: String) {
     Picasso.get().load(url).into(this)
 }
+
+fun ViewGroup.inflate(layoutId: Int, attachToRoot: Boolean = false) = LayoutInflater.from(context).inflate(layoutId, this, attachToRoot)

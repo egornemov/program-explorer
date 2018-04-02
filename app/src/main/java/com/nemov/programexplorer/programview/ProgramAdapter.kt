@@ -1,51 +1,99 @@
 package com.nemov.programexplorer.programview
 
+import android.support.v4.util.SparseArrayCompat
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import com.nemov.programexplorer.R
 import com.nemov.programexplorer.api.IAdapter
 import com.nemov.programexplorer.api.ProgramModel
-import com.nemov.programexplorer.commons.loadUrl
+import com.nemov.programexplorer.commons.adapter.AdapterConstants
+import com.nemov.programexplorer.commons.adapter.ViewType
+import com.nemov.programexplorer.commons.adapter.ViewTypeDelegateAdapter
 
 /**
  * Created by ynemov on 01.04.18.
  */
-class ProgramAdapter(private var programList: ProgramModel.Companion.Program) : RecyclerView.Adapter<ProgramAdapter.ViewHolder>(), IAdapter {
-    override fun getItemCount() = programList.items_number
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-            ViewHolder(LayoutInflater
-                    .from(parent?.context)
-                    .inflate(R.layout.item_layout, parent, false))
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder?.imgIcon.loadUrl(programList.items[position].icon)
-        holder?.txtName.text = programList.items[position].name
+class ProgramAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), IAdapter {
+    private var items: ArrayList<ViewType>
+    private var delegateAdapters = SparseArrayCompat<ViewTypeDelegateAdapter>()
+    private val loadingItem = object : ViewType {
+        override fun getViewType() = AdapterConstants.LOADING
     }
 
-    override fun prependAll(programs: ProgramModel.Companion.Program) {
-        val itemCount = programs.items_number
-        programList = programs append programList
+    init {
+        delegateAdapters.put(AdapterConstants.LOADING, LoadingDelegateAdapter())
+        delegateAdapters.put(AdapterConstants.PROGRAM, ProgramDelegateAdapter())
+        items = ArrayList()
+        items.add(loadingItem)
+    }
+
+    override fun getItemCount(): Int = items.size
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = delegateAdapters.get(viewType).onCreateViewHolder(parent)
+
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        delegateAdapters.get(getItemViewType(position)).onBindViewHolder(holder, items[position])
+    }
+
+    override fun getItemViewType(position: Int) = items[position].getViewType()
+
+    override fun clearAndSetAll(programs: ProgramModel.Companion.ProgramList) {
+        // first remove loading and notify
+        val initPosition = items.size - 1
+        items.removeAt(initPosition)
+        notifyItemRemoved(initPosition)
+
+        // insert news and the loading at the end of the list
+        items.addAll(programs.items)
+        items.add(loadingItem)
+        notifyItemRangeChanged(initPosition, items.size + 1 /* plus loading item */)
+    }
+
+    override fun prependAll(programs: ProgramModel.Companion.ProgramList) {
+        val programList: List<ProgramModel.Companion.Program> = getProgramList()
+        val prevPrograms = programs.items.subList(0, programs.items.size - 1)
+        val itemCount = prevPrograms.size
+
+        items.clear()
+        notifyItemRangeRemoved(0, getLastPosition())
+
+        items.addAll(prevPrograms)
+        items.addAll(programList)
+        items.add(loadingItem)
         notifyItemRangeInserted(0, itemCount)
     }
 
-    override fun appendAll(programs: ProgramModel.Companion.Program) {
-        val positionStart = programList.items.size
-        val itemCount = programs.items_number
-        programList = programList append programs
+    override fun appendAll(programs: ProgramModel.Companion.ProgramList) {
+        val programList: List<ProgramModel.Companion.Program> = getProgramList()
+        val positionStart = programList.size
+        val nextPrograms = programs.items.subList(1, programs.items.size)
+        val itemCount = nextPrograms.size
+
+        items.clear()
+        notifyItemRangeRemoved(0, getLastPosition())
+
+        items.addAll(programList)
+        items.addAll(nextPrograms)
+        items.add(loadingItem)
         notifyItemRangeInserted(positionStart, itemCount)
     }
 
-    override fun getDataIDByAdapterPosition(index: Int) = programList.items[index].id
-    override fun getFirstDataID() = programList.items[0].id
-    override fun getLastDataID() = programList.items[programList.items.size - 1].id
+    override fun getDataIDByAdapterPosition(index: Int) = getProgramList()[index].id
 
-    class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
-        val imgIcon = itemView.findViewById<ImageView>(R.id.imgIcon)
-        val txtName = itemView.findViewById<TextView>(R.id.txtName)
+    override fun getFirstDataID(): Int {
+        val programs = getProgramList()
+        if (programs.isEmpty()) return 0
+        return programs.first().id
     }
+    override fun getLastDataID(): Int {
+        val programs = getProgramList()
+        if (programs.isEmpty()) return 0
+        return programs.last().id
+    }
+
+    private fun getProgramList(): List<ProgramModel.Companion.Program> =
+            items.filter { it.getViewType() == AdapterConstants.PROGRAM }
+                    .map { it as ProgramModel.Companion.Program }
+
+    private fun getLastPosition() = if (items.lastIndex == -1) 0 else items.lastIndex
 }
