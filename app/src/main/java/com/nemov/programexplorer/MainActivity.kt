@@ -1,6 +1,8 @@
 package com.nemov.programexplorer
 
 import android.content.Context
+import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
@@ -11,12 +13,15 @@ import android.widget.Toast
 import java.util.*
 import android.support.v4.widget.SwipeRefreshLayout
 
-class MainActivity : AppCompatActivity(), IView {
+class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.ConnectivityReceiverListener {
     private val BORDER_ID_KEY = "BORDER_ID_KEY"
 
     private val presenter by lazy {
         ProgramPresenter(this, getUuid(this))
     }
+
+    private var borderId = 0
+    private var isConnected = false
     
     private lateinit var swipeContainer: SwipeRefreshLayout
     private lateinit var rvProgram: RecyclerView
@@ -49,13 +54,16 @@ class MainActivity : AppCompatActivity(), IView {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val borderId = savedInstanceState?.getInt(BORDER_ID_KEY)
-        presenter.loadInitial(borderId ?: 0)
+        registerReceiver(ConnectivityReceiver(), IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+        ConnectivityReceiver.connectivityReceiverListener = this
+
+        borderId = savedInstanceState?.getInt(BORDER_ID_KEY)?: 0
 
         rvProgram = findViewById<RecyclerView>(R.id.programList)
         rvProgram.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false)
         scrollListener = object : EndlessRecyclerOnScrollListener(rvProgram.layoutManager) {
             override fun onLoadMore() {
+                if (!isConnected) return
                 val borderId = (rvProgram?.adapter as IAdapter).getLastDataID()
                 presenter.loadNext(borderId)
             }
@@ -64,8 +72,10 @@ class MainActivity : AppCompatActivity(), IView {
 
         swipeContainer = findViewById<SwipeRefreshLayout>(R.id.swipeContainer);
         swipeContainer.setOnRefreshListener {
-            val borderId = (rvProgram?.adapter as IAdapter).getFirstDataID()
-            presenter.loadPrevious(borderId)
+            if (isConnected) {
+                val borderId = (rvProgram?.adapter as IAdapter).getFirstDataID()
+                presenter.loadPrevious(borderId)
+            }
         }
         swipeContainer.setColorSchemeResources(
                 android.R.color.holo_blue_bright,
@@ -83,9 +93,25 @@ class MainActivity : AppCompatActivity(), IView {
     override fun onSaveInstanceState(outState: Bundle?) {
         outState?.run {
             val firstVisible = rvProgram.findFirstVisiblePosition()
-            putInt(BORDER_ID_KEY, (rvProgram.adapter as IAdapter).getDataIDByAdapterPosition(firstVisible))
+            if (rvProgram.adapter != null) {
+                borderId = (rvProgram.adapter as IAdapter).getDataIDByAdapterPosition(firstVisible)
+            }
+            putInt(BORDER_ID_KEY, borderId)
         }
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onNetworkConnectionChanged(isConnected: Boolean) {
+        showMessage(isConnected)
+    }
+
+    private fun showMessage(isConnected: Boolean) {
+        this.isConnected = isConnected
+        if (isConnected && rvProgram.adapter == null) {
+            presenter.loadInitial(borderId ?: 0)
+        } else if (!isConnected) {
+            Toast.makeText(this, "You are offline", Toast.LENGTH_SHORT).show()
+        }
     }
 }
 
