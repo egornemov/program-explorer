@@ -27,8 +27,8 @@ class ProgramDelegateAdapter : ViewTypeDelegateAdapter {
     }
 
     inner class ProgramViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
-        val imgIcon = itemView.findViewById<ImageView>(R.id.imgIcon)
-        val txtName = itemView.findViewById<TextView>(R.id.txtName)
+        private val imgIcon = itemView.findViewById<ImageView>(R.id.imgIcon)
+        private val txtName = itemView.findViewById<TextView>(R.id.txtName)
 
         fun bind(item: ProgramModel.Companion.Program) {
             imgIcon.loadUrl(item.icon)

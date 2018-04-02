@@ -8,8 +8,8 @@ import io.reactivex.schedulers.Schedulers
  * Created by ynemov on 31.03.18.
  */
 class ProgramPresenter(val view: IView, val uuid: String) : IPresenter {
-    val model = ProgramModel()
-    var disposable: Disposable? = null
+    private val model = ProgramModel()
+    private var disposable: Disposable? = null
 
     override fun loadInitial(borderId: Int) {
         load(borderId, IPresenter.Direction.NO_DIRECTION)
@@ -31,6 +31,7 @@ class ProgramPresenter(val view: IView, val uuid: String) : IPresenter {
         disposable = model.getProgramList(uuid, borderId, direction.direction)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .retry()
                 .subscribe {
                     when(direction) {
                         IPresenter.Direction.NO_DIRECTION -> view.setResults(it)
