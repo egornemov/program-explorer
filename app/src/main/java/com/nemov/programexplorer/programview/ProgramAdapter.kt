@@ -1,4 +1,4 @@
-package com.nemov.programexplorer
+package com.nemov.programexplorer.programview
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -7,7 +7,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.nemov.programexplorer.R
-import com.squareup.picasso.Picasso
+import com.nemov.programexplorer.api.IAdapter
+import com.nemov.programexplorer.api.ProgramModel
+import com.nemov.programexplorer.commons.loadUrl
 
 /**
  * Created by ynemov on 01.04.18.
@@ -46,8 +48,4 @@ class ProgramAdapter(private var programList: ProgramModel.Companion.Program) : 
         val imgIcon = itemView.findViewById<ImageView>(R.id.imgIcon)
         val txtName = itemView.findViewById<TextView>(R.id.txtName)
     }
-}
-
-private fun ImageView.loadUrl(url: String) {
-    Picasso.get().load(url).into(this)
 }

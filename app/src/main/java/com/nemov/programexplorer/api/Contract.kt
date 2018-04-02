@@ -1,4 +1,4 @@
-package com.nemov.programexplorer
+package com.nemov.programexplorer.api
 
 import io.reactivex.Observable
 import retrofit2.Retrofit

@@ -1,6 +1,5 @@
-package com.nemov.programexplorer
+package com.nemov.programexplorer.api
 
-import android.util.Log
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -30,8 +29,6 @@ class ProgramPresenter(val view: IView, val uuid: String) : IPresenter {
 
     fun load(borderId: Int, direction: IPresenter.Direction) {
         view.showLoading()
-        Log.d("PROGRAM_PRESENTER", "load: $borderId, $direction (${direction.direction})")
-
         disposable = model.getProgramList(uuid, borderId, direction.direction)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

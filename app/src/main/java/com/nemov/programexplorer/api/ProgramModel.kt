@@ -1,11 +1,6 @@
-package com.nemov.programexplorer
+package com.nemov.programexplorer.api
 
-import android.util.Log
-import io.reactivex.Observable
 import java.util.*
-import java.util.Collections.addAll
-import java.util.stream.Collectors
-import java.util.stream.Stream
 
 /**
  * Created by ynemov on 31.03.18.

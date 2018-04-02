@@ -1,4 +1,4 @@
-package com.nemov.programexplorer
+package com.nemov.programexplorer.commons
 
 import android.content.BroadcastReceiver
 import android.content.Context

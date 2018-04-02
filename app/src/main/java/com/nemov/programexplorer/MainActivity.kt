@@ -1,17 +1,23 @@
 package com.nemov.programexplorer
 
-import android.content.Context
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.Settings
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.widget.LinearLayout
 import android.widget.Toast
-import java.util.*
 import android.support.v4.widget.SwipeRefreshLayout
+import com.nemov.programexplorer.api.IAdapter
+import com.nemov.programexplorer.api.IView
+import com.nemov.programexplorer.api.ProgramModel
+import com.nemov.programexplorer.api.ProgramPresenter
+import com.nemov.programexplorer.commons.ConnectivityReceiver
+import com.nemov.programexplorer.commons.EndlessRecyclerOnScrollListener
+import com.nemov.programexplorer.commons.findFirstVisiblePosition
+import com.nemov.programexplorer.commons.getUuid
+import com.nemov.programexplorer.programview.ProgramAdapter
 
 class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.ConnectivityReceiverListener {
     private val BORDER_ID_KEY = "BORDER_ID_KEY"
@@ -20,9 +26,11 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
         ProgramPresenter(this, getUuid(this))
     }
 
+    private val connectivityReceiver = ConnectivityReceiver()
+
     private var borderId = 0
     private var isConnected = false
-    
+
     private lateinit var swipeContainer: SwipeRefreshLayout
     private lateinit var rvProgram: RecyclerView
     private lateinit var scrollListener: EndlessRecyclerOnScrollListener
@@ -54,9 +62,6 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        registerReceiver(ConnectivityReceiver(), IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-        ConnectivityReceiver.connectivityReceiverListener = this
-
         borderId = savedInstanceState?.getInt(BORDER_ID_KEY)?: 0
 
         rvProgram = findViewById<RecyclerView>(R.id.programList)
@@ -85,9 +90,21 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
         )
     }
 
+    override fun onStart() {
+        super.onStart()
+        registerReceiver(connectivityReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+        ConnectivityReceiver.connectivityReceiverListener = this
+    }
+
     override fun onPause() {
         super.onPause()
         presenter.dispose()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(connectivityReceiver)
+        ConnectivityReceiver.connectivityReceiverListener = null
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -113,19 +130,4 @@ class MainActivity : AppCompatActivity(), IView, ConnectivityReceiver.Connectivi
             Toast.makeText(this, "You are offline", Toast.LENGTH_SHORT).show()
         }
     }
-}
-
-private fun getUuid(context: Context): String {
-    try {
-        val androidId = Settings.Secure.getString(context.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID)
-        return UUID.fromString(androidId).toString()
-    } catch (ignore: Exception) {
-        return UUID.randomUUID().toString()
-    }
-
-}
-
-fun RecyclerView.findFirstVisiblePosition(): Int {
-    val child = getChildAt(0)
-    return if (child == null) RecyclerView.NO_POSITION else getChildAdapterPosition(child)
 }
